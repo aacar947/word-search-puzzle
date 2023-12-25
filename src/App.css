@@ -8,8 +8,9 @@
   vertical-align: middle;
   overflow: hidden;
   display: inline-block;
+  position: relative;
 }
-.table td div {
+.table td p {
   margin-top: auto;
   padding: 0;
   width: 100%;
@@ -17,8 +18,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  text-transform: uppercase;
 }
-
+.debug {
+  position: absolute;
+  top: 5px;
+  height: 1rem;
+  width: fit-content;
+  font-size: x-small;
+}
 .table {
   border-collapse: collapse;
   user-select: none;
@@ -30,6 +38,29 @@
   color: whitesmoke;
 }
 
-.found {
+td.found {
   background-color: greenyellow;
+}
+
+.red-border {
+  border: 1px solid red;
+}
+
+.wordlist {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.wordlist > p {
+  margin: 5px;
+  font-size: large;
+  text-transform: uppercase;
+}
+.wordlist > p.found {
+  text-decoration: line-through;
+  color: rgb(84, 84, 84);
+}
+
+.word-letter {
+  background-color: aqua;
 }

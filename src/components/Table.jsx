@@ -7,17 +7,15 @@ export default function Table() {
   const [mouseDown, setMouseDown] = useState(false);
   const [selection, setSelection] = useState([]);
   const [table, setTable] = useState([]);
+  const [debugMode, setDebugMode] = useState(true);
   const [wordlist, setWordlist] = useState([]);
   const tableRef = useRef({});
+  const [size, setSize] = useState({ h: 13, w: 15 });
 
   useLayoutEffect(() => {
-    const [_table, _wordlist] = createPuzzle(14, 20);
+    const [_table, _wordlist] = createPuzzle(size.h, size.w, 40);
     setTable(_table);
-    setWordlist(
-      _wordlist.map((word) => {
-        return { value: word, found: false };
-      })
-    );
+    setWordlist(_wordlist);
   }, []);
 
   // mark selections
@@ -75,6 +73,7 @@ export default function Table() {
 
   const handleSelection = (node, value, x, y) => {
     if (selection.length === 0) {
+      console.log(node);
       setSelection([{ node, value, x, y }]);
       return;
     }
@@ -82,8 +81,26 @@ export default function Table() {
     const _selection = [];
     const x0 = selection[0].x;
     const y0 = selection[0].y;
+    const isValid = () => x0 === x || y0 === y || Math.abs(x0 - x) === Math.abs(y0 - y);
 
-    if (!(x0 === x || y0 === y || Math.abs(x0 - x) === Math.abs(y0 - y))) return;
+    if (selection.length > 1 && !isValid()) {
+      const x1 = selection[1].x;
+      const y1 = selection[1].y;
+      if (x0 === x1) {
+        x = x0;
+      } else if (y0 === y1) {
+        y = y0;
+      } else {
+        const delta = Math.max(Math.abs(x0 - x), Math.abs(y0 - y));
+        const xFactor = x1 - x0;
+        const yFactor = y1 - y0;
+        x = Math.max(Math.min(x0 + delta * xFactor, size.h - 1), 0);
+        y = Math.max(Math.min(y0 + delta * yFactor, size.w - 1), 0);
+        console.log(x, y);
+      }
+    }
+
+    if (!isValid()) return;
 
     const length = x === x0 ? Math.abs(y - y0) : Math.abs(x - x0);
     for (let i = 0; i <= length; i++) {
@@ -103,9 +120,9 @@ export default function Table() {
     tableRef.current[x + ',' + y] = { node: ref, value: letter, x, y };
   };
 
-  const onSwipe = (e, value, x, y) => {
+  const onSwipe = (node, value, x, y) => {
     if (!mouseDown) return;
-    handleSelection(e.target.offsetParent, value, x, y);
+    handleSelection(node, value, x, y);
   };
 
   return (
@@ -117,13 +134,23 @@ export default function Table() {
               <tr key={'tr' + i}>
                 {row.map((letter, j) => {
                   return (
-                    <td key={'td' + j} ref={(ref) => handleCellRef(ref, letter, i, j)}>
-                      <div
-                        onMouseEnter={(e) => onSwipe(e, letter, i, j)}
-                        onMouseDown={(e) => handleSelection(e.target.offsetParent, letter, i, j)}
+                    <td
+                      onMouseEnter={(e) => selection.length > 1 && onSwipe(e.currentTarget, letter, i, j)}
+                      onMouseDown={(e) => handleSelection(e.currentTarget, letter, i, j)}
+                      className={letter === letter.toLowerCase() && debugMode ? 'word-letter' : null}
+                      key={'td' + j}
+                      ref={(ref) => handleCellRef(ref, letter, i, j)}
+                    >
+                      <p
+                        className={debugMode ? 'red-border' : null}
+                        onMouseDown={(e) => handleSelection(e.currentTarget.offsetParent, letter, i, j)}
+                        onMouseEnter={(e) =>
+                          selection.length <= 1 && onSwipe(e.currentTarget.offsetParent, letter, i, j)
+                        }
                       >
                         {letter}
-                      </div>
+                      </p>
+                      {debugMode ? <div className='debug'>{i + ',' + j}</div> : null}
                     </td>
                   );
                 })}

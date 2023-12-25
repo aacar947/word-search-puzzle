@@ -1,23 +1,25 @@
 import Wordlist from './wordlist';
 const MAX_SIZE = 40
-export default function createPuzzle(size = 11, wordCount = 4) {
-  size = Math.min(MAX_SIZE, size);
-  const maxChar = size - 3
-  const listSize = Math.min(size, wordCount)
+export default function createPuzzle(height = 11, width = 11, wordCount = 4) {
+  height = Math.min(MAX_SIZE, height);
+  width = Math.min(MAX_SIZE, width)
+  const charLimit = Math.min(height, width) - 3
+  const listSize = Math.min(height, width, wordCount)
   // create word list
-  const wordlist = createAWordList(listSize, maxChar)
+  let wordlist = createAWordList(listSize, charLimit)
   // create empty table matrix
-  const table = createTableArray(size);
+  const table = createTableArray(height, width);
   // place words
-  placeWords(table, wordlist, size)
+  placeWords(table, wordlist, height, width)
   // fill empty cells with random letters
   fillEmptyCells(table)
+  wordlist = wordlist.map(word => { return { value: word, found: false } })
   return [table, wordlist];
 }
 
-function createAWordList(size, maxChar) {
+function createAWordList(size, charLimit) {
   let wordlist = [];
-  const _wordlist = Wordlist.filter(w => w.length <= maxChar);
+  const _wordlist = Wordlist.filter(w => w.length <= charLimit);
   const length = _wordlist.length;
   const pickedIndexes = [];
   for (let i = 0; i < size; i++) {
@@ -36,9 +38,9 @@ function createAWordList(size, maxChar) {
   return wordlist;
 }
 
-function createTableArray(size) {
-  const table = new Array(size).fill(0).map(() => {
-    return new Array(size).fill(0)
+function createTableArray(height, width) {
+  const table = new Array(height).fill(0).map(() => {
+    return new Array(width).fill(0)
   })
 
   return table
@@ -46,45 +48,56 @@ function createTableArray(size) {
 
 
 
-function placeWords(table, wordlist, size) {
+function placeWords(table, wordlist, height, width) {
   const directions = [
-    { name: "hor", x: 0, y: 1, check: (l, x, y) => y < (size - l) },
-    { name: "ver", x: 1, y: 0, check: (l, x, y) => x < (size - l) },
-    { name: "diag", x: -1, y: 1, check: (l, x, y) => x > l && y < (size - l) },
-    { name: "diag-", x: 1, y: 1, check: (l, x, y) => x < (size - l) && y < (size - l) }];
+    { name: "hor", x: 0, y: 1, check: (l, x, y) => y <= (width - l) },
+    { name: "ver", x: 1, y: 0, check: (l, x, y) => x <= (height - l) },
+    { name: "diag", x: -1, y: 1, check: (l, x, y) => x >= l && y <= (width - l) },
+    { name: "diag-", x: 1, y: 1, check: (l, x, y) => x <= (height - l) && y <= (width - l) }];
 
-  for (let i = 0; i < wordlist.length; i++) {
-    const word = wordlist[i];
+  const sortedWordlist = [...wordlist].sort((a, b) => a.length - b.length)
+  for (let i = 0; i < sortedWordlist.length; i++) {
+    const word = sortedWordlist[i].toLowerCase();
     let cell, dir;
-    let occupied = false
-    const openset = getOpenset(size, word.length);
+    let empty = true
+    const openset = getOpenset(height, width, word.length);
 
     do {
       if (openset.length <= 0) {
-        wordlist.splice(i, 1)
-        i--;
+        const index = wordlist.indexOf(word);
+        wordlist.splice(index, 1)
+        console.log(i, word)
         break;
       }
       const cellIndex = randomInt(openset.length)
       cell = openset[cellIndex]
 
-      const dirIndex = randomInt(directions.length);
+      const dirIndex = getDirIndex(cell, height, width);
 
       for (let _j = 0; _j < directions.length; _j++) {
         const j = (_j + dirIndex) % directions.length
         dir = directions[j]
-        occupied = checkOccupation(table, word, dir, cell.x, cell.y)
-        if (occupied) {
+        empty = isEmpty(table, word, dir, cell.x, cell.y)
+        if (!empty) {
           continue;
         } else break;
       }
-      if (occupied) {
+      if (!empty) {
         openset.splice(cellIndex, 1)
       }
-    } while (occupied);
+    } while (!empty);
 
-    if (!occupied) placeWord(table, cell, word, dir)
+    if (empty) placeWord(table, cell, word, dir)
   }
+}
+
+function getDirIndex(cell, h, w) {
+  if (cell.x === 0 || cell.x === h) {
+    return 0
+  } else if (cell.y === 0 || cell.y === w) {
+    return 1;
+  }
+  return randomInt(2, 4)
 }
 
 function placeWord(table, cell, word, dir) {
@@ -97,33 +110,36 @@ function placeWord(table, cell, word, dir) {
   }
 }
 
-function checkOccupation(table, word, dir, x, y) {
-  let occupied = false;
-  if (!dir.check(word.length, x, y)) return true;
+function isEmpty(table, word, dir, x, y) {
+  let empty = true, usedSameCharBefore = false;
+  if (!dir.check(word.length, x, y)) return false;
   for (const char of word) {
-    occupied = (table[x][y] != 0)
-    if (occupied) break;
+    const sameChar = char.toUpperCase() === ("" + table[x][y]).toUpperCase()
+    empty = (table[x][y] === 0 || !usedSameCharBefore && sameChar)
+    usedSameCharBefore = sameChar;
+    if (!empty) break;
     x += dir.x;
     y += dir.y
   }
-  return occupied;
+  return empty;
 }
 
-function getOpenset(size, l) {
+function getOpenset(h, w, l) {
   const openset = [];
-  const max = size - l
-  for (let i = 0; i < size * size; i++) {
-    const x = Math.floor(i / size)
-    const y = Math.floor(i % size)
-    if (x > max && y > max) continue;
+  const maxX = h - l
+  const maxY = w - l
+  for (let i = 0; i < h * w; i++) {
+    const x = Math.floor(i / w)
+    const y = Math.floor(i % h)
+    if (x > maxX && y > maxY) continue;
     openset.push({ x, y })
   }
   return openset;
 }
 
 function fillEmptyCells(table) {
-  table.map((row, x) => {
-    row.map((cell, y) => {
+  table.forEach((row, x) => {
+    row.forEach((cell, y) => {
       if (!cell) table[x][y] = String.fromCharCode(randomInt(65, 91))
     })
   })

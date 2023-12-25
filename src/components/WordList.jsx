@@ -2,7 +2,7 @@ import React from 'react';
 
 function WordList({ wordlist }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className='wordlist'>
       {wordlist.map((word, i) => {
         return (
           <p key={i} className={word.found ? 'found' : ''}>
