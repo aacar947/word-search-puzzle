@@ -1,14 +1,39 @@
+#gameboard {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  padding: 1rem;
+  min-width: min-content;
+  justify-content: center;
+  align-items: center;
+}
+
+#gameboard-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: min-content;
+}
+
+#table-wrapper {
+  border: 1px solid gray;
+  border-radius: 25px;
+  overflow: hidden;
+}
+
 .table td {
-  border: 1px solid black;
-  margin: 0;
-  width: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
   height: 2rem;
   padding: 0.4rem;
   text-align: center;
   vertical-align: middle;
   overflow: hidden;
-  display: inline-block;
   position: relative;
+  display: inline-block;
+  overflow: hidden;
+  word-wrap: break-word;
+  border-collapse: collapse;
 }
 .table td p {
   margin-top: auto;
@@ -19,6 +44,7 @@
   justify-content: center;
   align-items: center;
   text-transform: uppercase;
+  font-weight: bold;
 }
 .debug {
   position: absolute;
@@ -30,6 +56,8 @@
 .table {
   border-collapse: collapse;
   user-select: none;
+  table-layout: fixed;
+  text-wrap: nowrap;
 }
 
 .selected {
@@ -49,16 +77,19 @@ td.found {
 .wordlist {
   display: flex;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .wordlist > p {
-  margin: 5px;
+  margin-right: 1rem;
+  margin-top: 5px;
   font-size: large;
   text-transform: uppercase;
+  font-weight: bold;
 }
 .wordlist > p.found {
   text-decoration: line-through;
-  color: rgb(84, 84, 84);
+  color: rgb(124, 124, 124);
 }
 
 .word-letter {

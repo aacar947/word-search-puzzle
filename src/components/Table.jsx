@@ -1,13 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import createPuzzle from '../utils/createPuzzle';
 import WordList from './WordList';
-import { getByDisplayValue } from '@testing-library/react';
 
 export default function Table() {
   const [mouseDown, setMouseDown] = useState(false);
   const [selection, setSelection] = useState([]);
   const [table, setTable] = useState([]);
-  const [debugMode, setDebugMode] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
   const [wordlist, setWordlist] = useState([]);
   const tableRef = useRef({});
   const [size, setSize] = useState({ h: 13, w: 15 });
@@ -16,7 +15,7 @@ export default function Table() {
     const [_table, _wordlist] = createPuzzle(size.h, size.w, 40);
     setTable(_table);
     setWordlist(_wordlist);
-  }, []);
+  }, [size]);
 
   // mark selections
   useEffect(() => {
@@ -126,40 +125,42 @@ export default function Table() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flexWrap: 'nowrap', padding: '1rem' }}>
-      <table onMouseLeave={onMouseLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp} className='table'>
-        <tbody>
-          {table.map((row, i) => {
-            return (
-              <tr key={'tr' + i}>
-                {row.map((letter, j) => {
-                  return (
-                    <td
-                      onMouseEnter={(e) => selection.length > 1 && onSwipe(e.currentTarget, letter, i, j)}
-                      onMouseDown={(e) => handleSelection(e.currentTarget, letter, i, j)}
-                      className={letter === letter.toLowerCase() && debugMode ? 'word-letter' : null}
-                      key={'td' + j}
-                      ref={(ref) => handleCellRef(ref, letter, i, j)}
-                    >
-                      <p
-                        className={debugMode ? 'red-border' : null}
-                        onMouseDown={(e) => handleSelection(e.currentTarget.offsetParent, letter, i, j)}
-                        onMouseEnter={(e) =>
-                          selection.length <= 1 && onSwipe(e.currentTarget.offsetParent, letter, i, j)
-                        }
+    <>
+      <div id='table-wrapper'>
+        <table onMouseLeave={onMouseLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp} className='table'>
+          <tbody>
+            {table.map((row, i) => {
+              return (
+                <tr key={'tr' + i}>
+                  {row.map((letter, j) => {
+                    return (
+                      <td
+                        onMouseEnter={(e) => selection.length > 1 && onSwipe(e.currentTarget, letter, i, j)}
+                        onMouseDown={(e) => handleSelection(e.currentTarget, letter, i, j)}
+                        className={letter === letter.toLowerCase() && debugMode ? 'word-letter' : null}
+                        key={'td' + j}
+                        ref={(ref) => handleCellRef(ref, letter, i, j)}
                       >
-                        {letter}
-                      </p>
-                      {debugMode ? <div className='debug'>{i + ',' + j}</div> : null}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                        <p
+                          className={debugMode ? 'red-border' : null}
+                          onMouseDown={(e) => handleSelection(e.currentTarget.offsetParent, letter, i, j)}
+                          onMouseEnter={(e) =>
+                            selection.length <= 1 && onSwipe(e.currentTarget.offsetParent, letter, i, j)
+                          }
+                        >
+                          {letter}
+                        </p>
+                        {debugMode ? <div className='debug'>{i + ',' + j}</div> : null}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       <WordList wordlist={wordlist}></WordList>
-    </div>
+    </>
   );
 }
