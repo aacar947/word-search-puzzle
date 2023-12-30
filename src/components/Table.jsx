@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import WordList from './WordList';
 
 export default function Table({ size, table, isMouseDown, wordlist, selection, setSelection, clearSelectionMark }) {
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(true);
   const tableRef = useRef({});
 
   // mark selections

@@ -13,7 +13,6 @@ export default function createPuzzle(height = 11, width = 11, wordCount = 4) {
   placeWords(table, wordlist, height, width)
   // fill empty cells with random letters
   fillEmptyCells(table)
-  wordlist = wordlist.map(word => { return { value: word, found: false } })
   return [table, wordlist];
 }
 
@@ -35,7 +34,7 @@ function createAWordList(size, charLimit) {
     pickedIndexes.push(index)
 
   }
-  return wordlist;
+  return wordlist.map((word, i) => { return { value: word, found: false, index: i } });
 }
 
 function createTableArray(height, width) {
@@ -55,17 +54,16 @@ function placeWords(table, wordlist, height, width) {
     { name: "diag", x: -1, y: 1, check: (l, x, y) => x >= l && y <= (width - l) },
     { name: "diag-", x: 1, y: 1, check: (l, x, y) => x <= (height - l) && y <= (width - l) }];
 
-  const sortedWordlist = [...wordlist].sort((a, b) => a.length - b.length)
+  const sortedWordlist = [...wordlist].sort((a, b) => a.value.length - b.value.length)
   for (let i = 0; i < sortedWordlist.length; i++) {
-    const word = sortedWordlist[i].toLowerCase();
+    const word = sortedWordlist[i].value.toLowerCase();
     let cell, dir;
     let empty = true
     const openset = getOpenset(height, width, word.length);
 
     do {
       if (openset.length <= 0) {
-        const index = wordlist.indexOf(word);
-        wordlist.splice(index, 1)
+        wordlist.splice(sortedWordlist[i].index, 1)
         console.log(i, word)
         break;
       }
@@ -87,7 +85,11 @@ function placeWords(table, wordlist, height, width) {
       }
     } while (!empty);
 
-    if (empty) placeWord(table, cell, word, dir)
+    if (empty) {
+      placeWord(table, cell, word, dir)
+      wordlist[sortedWordlist[i].index].start = { x: cell.x, y: cell.y }
+      wordlist[sortedWordlist[i].index].end = { x: cell.x + (word.length - 1) * dir.x, y: cell.y + (word.length - 1) * dir.y }
+    }
   }
 }
 
