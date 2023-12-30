@@ -1,21 +1,9 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import createPuzzle from '../utils/createPuzzle';
 import WordList from './WordList';
 
-export default function Table() {
-  const [mouseDown, setMouseDown] = useState(false);
-  const [selection, setSelection] = useState([]);
-  const [table, setTable] = useState([]);
+export default function Table({ size, table, isMouseDown, wordlist, selection, setSelection, clearSelectionMark }) {
   const [debugMode, setDebugMode] = useState(false);
-  const [wordlist, setWordlist] = useState([]);
   const tableRef = useRef({});
-  const [size, setSize] = useState({ h: 13, w: 15 });
-
-  useLayoutEffect(() => {
-    const [_table, _wordlist] = createPuzzle(size.h, size.w, 40);
-    setTable(_table);
-    setWordlist(_wordlist);
-  }, [size]);
 
   // mark selections
   useEffect(() => {
@@ -23,52 +11,6 @@ export default function Table() {
       cell.node.classList.add('selected');
     });
   }, [selection]);
-
-  const markAsFound = () => {
-    selection.forEach((cell) => {
-      cell.node.classList.add('found');
-    });
-  };
-
-  const onSelectionEnd = () => {
-    let word = '';
-    selection.forEach((cell) => {
-      word += cell.value;
-    });
-    const match = wordlist.find((w) => {
-      return w.value === word;
-    });
-
-    if (match) {
-      match.found = true;
-      setWordlist([...wordlist]);
-      markAsFound();
-    }
-    clearSelectionMark(0);
-    setSelection([]);
-  };
-
-  const clearSelectionMark = (start = 0) => {
-    selection.forEach((cell, i) => {
-      if (i >= start) {
-        cell.node.classList.remove('selected');
-      }
-    });
-  };
-
-  const onMouseLeave = (e) => {
-    if (mouseDown) setMouseDown(false);
-    clearSelectionMark();
-    onSelectionEnd();
-  };
-  const onMouseDown = (e) => {
-    setMouseDown(true);
-  };
-  const onMouseUp = (e) => {
-    setMouseDown(false);
-    clearSelectionMark();
-    onSelectionEnd();
-  };
 
   const handleSelection = (node, value, x, y) => {
     if (selection.length === 0) {
@@ -120,14 +62,14 @@ export default function Table() {
   };
 
   const onSwipe = (node, value, x, y) => {
-    if (!mouseDown) return;
+    if (!isMouseDown) return;
     handleSelection(node, value, x, y);
   };
 
   return (
     <>
       <div id='table-wrapper'>
-        <table onMouseLeave={onMouseLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp} className='table'>
+        <table className='table'>
           <tbody>
             {table.map((row, i) => {
               return (
