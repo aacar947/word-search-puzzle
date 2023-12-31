@@ -1,3 +1,9 @@
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
 #gameboard {
   display: flex;
   flex-direction: column;
@@ -6,6 +12,11 @@
   min-width: min-content;
   justify-content: center;
   align-items: center;
+
+  --cell-width: 3rem;
+  --cell-height: 3rem;
+  --highlight-stroke-weight: 2rem;
+  --highlight-color: rgb(255, 217, 0);
 }
 
 #gameboard-center {
@@ -22,9 +33,9 @@
 }
 
 .table td {
-  min-width: 2rem;
-  min-height: 2rem;
-  height: 2rem;
+  min-width: var(--cell-width);
+  min-height: var(--cell-height);
+  height: var(--cell-height);
   padding: 0.4rem;
   text-align: center;
   vertical-align: middle;
@@ -60,16 +71,6 @@
   text-wrap: nowrap;
 }
 
-.selected {
-  background-color: orange;
-  border-color: orange !important;
-  color: whitesmoke;
-}
-
-td.found {
-  background-color: greenyellow;
-}
-
 .red-border {
   border: 1px solid red;
 }
@@ -87,6 +88,7 @@ td.found {
   text-transform: uppercase;
   font-weight: bold;
 }
+
 .wordlist > p.found {
   text-decoration: line-through;
   color: rgb(124, 124, 124);
@@ -94,4 +96,42 @@ td.found {
 
 .word-letter {
   background-color: aqua;
+}
+
+.highlight {
+  position: absolute;
+  height: var(--highlight-stroke-weight);
+  background-color: var(--highlight-color);
+  z-index: -2;
+  width: 0;
+  transform-origin: left;
+}
+
+.highlight::before {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  background-color: var(--highlight-color);
+  right: 100%;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  height: var(--highlight-stroke-weight);
+  width: calc(var(--cell-width) / 2);
+}
+.highlight::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  left: 100%;
+  background-color: var(--highlight-color);
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  height: var(--highlight-stroke-weight);
+  width: calc(var(--cell-width) / 2);
+}
+
+.highlight.selection {
+  transition: width 0.1s;
+  z-index: -1;
+  --highlight-color: aqua;
 }

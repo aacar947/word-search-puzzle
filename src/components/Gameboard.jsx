@@ -1,18 +1,33 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useRef } from 'react';
 import Table from './Table';
 import createPuzzle from '../utils/createPuzzle';
+import WordList from './WordList';
+import Highlight from './Highlight';
 
-export default function Gameboard({ size = { h: 13, w: 15 } }) {
+export default function Gameboard({ size = [13, 15] }) {
+  const [debugMode] = useState(false);
   const [table, setTable] = useState([]);
   const [selection, setSelection] = useState([]);
   const [wordlist, setWordlist] = useState([]);
   const [isMouseDown, setMouseDown] = useState(false);
+  const tableRef = useRef({});
+  const highlighterRef = useRef([]);
 
   useLayoutEffect(() => {
-    const [_table, _wordlist] = createPuzzle(size.h, size.w, 40);
+    const [_table, _wordlist] = createPuzzle(size[0], size[1], 40);
     setTable(_table);
     setWordlist(_wordlist);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // mark found word(s)
+  useLayoutEffect(() => {
+    highlighterRef.current = wordlist.map((w) => {
+      const startCell = tableRef.current[w.start[0] + ',' + w.start[1]].node;
+      const endCell = tableRef.current[w.end[0] + ',' + w.end[1]].node;
+      return { start: startCell, end: endCell };
+    });
+  }, [wordlist]);
 
   const onSelectionEnd = () => {
     let word = '';
@@ -26,29 +41,12 @@ export default function Gameboard({ size = { h: 13, w: 15 } }) {
     if (match) {
       match.found = true;
       setWordlist([...wordlist]);
-      markAsFound();
     }
-    clearSelectionMark(0);
     setSelection([]);
-  };
-
-  const clearSelectionMark = (start = 0) => {
-    selection.forEach((cell, i) => {
-      if (i >= start) {
-        cell.node.classList.remove('selected');
-      }
-    });
-  };
-
-  const markAsFound = () => {
-    selection.forEach((cell) => {
-      cell.node.classList.add('found');
-    });
   };
 
   const onMouseLeave = (e) => {
     if (isMouseDown) setMouseDown(false);
-    clearSelectionMark();
     onSelectionEnd();
   };
   const onMouseDown = (e) => {
@@ -56,14 +54,32 @@ export default function Gameboard({ size = { h: 13, w: 15 } }) {
   };
   const onMouseUp = (e) => {
     setMouseDown(false);
-    clearSelectionMark();
     onSelectionEnd();
   };
 
+  const highlightedWords = wordlist.map((w, i) => {
+    if (!(debugMode || w.found)) return null;
+    const mark = highlighterRef.current[i];
+    return mark ? <Highlight key={'hg' + i} start={mark.start} end={mark.end}></Highlight> : null;
+  });
+
   return (
-    <div id='gameboard' {...{ onMouseDown, onMouseUp, onMouseLeave }}>
+    <div id='gameboard' style={{ position: 'relative' }} {...{ onMouseDown, onMouseUp, onMouseLeave }}>
       <div id='gameboard-center'>
-        <Table {...{ table, size, selection, setSelection, wordlist, setWordlist, isMouseDown, clearSelectionMark }} />
+        <Table
+          {...{
+            table,
+            tableRef,
+            debugMode,
+            size,
+            selection,
+            setSelection,
+            setWordlist,
+            isMouseDown,
+          }}
+        />
+        <WordList wordlist={wordlist}></WordList>
+        {highlightedWords}
       </div>
     </div>
   );

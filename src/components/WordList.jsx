@@ -1,6 +1,6 @@
 import React from 'react';
 
-function WordList({ wordlist }) {
+function WordList({ wordlist = [] }) {
   return (
     <div className='wordlist'>
       {wordlist.map((word, i) => {

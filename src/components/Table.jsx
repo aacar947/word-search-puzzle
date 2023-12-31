@@ -1,20 +1,23 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import WordList from './WordList';
+import React, { useLayoutEffect, useState } from 'react';
+import Highlight from './Highlight';
 
-export default function Table({ size, table, isMouseDown, wordlist, selection, setSelection, clearSelectionMark }) {
-  const [debugMode, setDebugMode] = useState(true);
-  const tableRef = useRef({});
+export default function Table({ size, table, tableRef, isMouseDown, selection, setSelection, debugMode }) {
+  const [highlighter, setHighlighter] = useState(null);
 
   // mark selections
-  useEffect(() => {
-    selection.forEach((cell) => {
-      cell.node.classList.add('selected');
-    });
+  useLayoutEffect(() => {
+    if (selection.length === 0) {
+      setHighlighter(null);
+      return;
+    }
+    const start = selection[0].node;
+    const end = selection[selection.length - 1].node;
+
+    setHighlighter({ start, end });
   }, [selection]);
 
   const handleSelection = (node, value, x, y) => {
     if (selection.length === 0) {
-      console.log(node);
       setSelection([{ node, value, x, y }]);
       return;
     }
@@ -35,9 +38,8 @@ export default function Table({ size, table, isMouseDown, wordlist, selection, s
         const delta = Math.max(Math.abs(x0 - x), Math.abs(y0 - y));
         const xFactor = x1 - x0;
         const yFactor = y1 - y0;
-        x = Math.max(Math.min(x0 + delta * xFactor, size.h - 1), 0);
-        y = Math.max(Math.min(y0 + delta * yFactor, size.w - 1), 0);
-        console.log(x, y);
+        x = Math.max(Math.min(x0 + delta * xFactor, size[0] - 1), 0);
+        y = Math.max(Math.min(y0 + delta * yFactor, size[1] - 1), 0);
       }
     }
 
@@ -52,8 +54,6 @@ export default function Table({ size, table, isMouseDown, wordlist, selection, s
       const cell = tableRef.current[_x + ',' + _y];
       _selection.push(cell);
     }
-
-    clearSelectionMark(0);
     setSelection(_selection);
   };
 
@@ -79,7 +79,6 @@ export default function Table({ size, table, isMouseDown, wordlist, selection, s
                       <td
                         onMouseEnter={(e) => selection.length > 1 && onSwipe(e.currentTarget, letter, i, j)}
                         onMouseDown={(e) => handleSelection(e.currentTarget, letter, i, j)}
-                        className={letter === letter.toLowerCase() && debugMode ? 'word-letter' : null}
                         key={'td' + j}
                         ref={(ref) => handleCellRef(ref, letter, i, j)}
                       >
@@ -101,8 +100,8 @@ export default function Table({ size, table, isMouseDown, wordlist, selection, s
             })}
           </tbody>
         </table>
+        {highlighter ? <Highlight className='selection' start={highlighter.start} end={highlighter.end} /> : null}
       </div>
-      <WordList wordlist={wordlist}></WordList>
     </>
   );
 }

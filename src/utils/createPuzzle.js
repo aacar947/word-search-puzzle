@@ -1,6 +1,6 @@
 import Wordlist from './wordlist';
 const MAX_SIZE = 40
-export default function createPuzzle(height = 11, width = 11, wordCount = 4) {
+export default function createPuzzle(height = 11, width = 11, wordCount = Infinity) {
   height = Math.min(MAX_SIZE, height);
   width = Math.min(MAX_SIZE, width)
   const charLimit = Math.min(height, width) - 3
@@ -87,8 +87,8 @@ function placeWords(table, wordlist, height, width) {
 
     if (empty) {
       placeWord(table, cell, word, dir)
-      wordlist[sortedWordlist[i].index].start = { x: cell.x, y: cell.y }
-      wordlist[sortedWordlist[i].index].end = { x: cell.x + (word.length - 1) * dir.x, y: cell.y + (word.length - 1) * dir.y }
+      wordlist[sortedWordlist[i].index].start = [cell.x, cell.y]
+      wordlist[sortedWordlist[i].index].end = [cell.x + (word.length - 1) * dir.x, cell.y + (word.length - 1) * dir.y]
     }
   }
 }
@@ -117,7 +117,7 @@ function isEmpty(table, word, dir, x, y) {
   if (!dir.check(word.length, x, y)) return false;
   for (const char of word) {
     const sameChar = char.toUpperCase() === ("" + table[x][y]).toUpperCase()
-    empty = (table[x][y] === 0 || !usedSameCharBefore && sameChar)
+    empty = (table[x][y] === 0 || (!usedSameCharBefore && sameChar))
     usedSameCharBefore = sameChar;
     if (!empty) break;
     x += dir.x;
