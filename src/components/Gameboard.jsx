@@ -2,6 +2,7 @@ import React, { useState, useLayoutEffect, useRef } from 'react';
 import Table from './Table';
 import createPuzzle from '../utils/createPuzzle';
 import WordList from './WordList';
+import Timer from './Timer';
 import Highlight from './Highlight';
 import useEventListener from '../hooks/useEventListener';
 
@@ -81,6 +82,7 @@ export default function Gameboard({ size = [13, 15] }) {
   return (
     <div id='gameboard' style={{ position: 'relative' }} {...{ onMouseDown, onMouseUp, onMouseLeave, onTouchEnd }}>
       <div id='gameboard-center'>
+        <Timer wordlist={wordlist} />
         <Table
           {...{
             table,

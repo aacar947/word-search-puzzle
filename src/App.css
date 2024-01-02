@@ -13,10 +13,10 @@
   min-width: min-content;
   justify-content: center;
   align-items: center;
-  touch-action: none;
+  touch-action: pan-down;
   -ms-touch-action: none;
   -webkit-touch-callout: none;
-  font-size: larger;
+  font-size: x-large;
 
   --cell-width: 3rem;
   --cell-height: 3rem;
@@ -91,15 +91,12 @@
   margin-top: 5px;
   text-transform: uppercase;
   font-weight: bold;
+  font-size: 20px;
 }
 
 .wordlist > p.found {
   text-decoration: line-through;
   color: rgb(124, 124, 124);
-}
-
-.word-letter {
-  background-color: aqua;
 }
 
 .highlight {
@@ -138,4 +135,15 @@
   transition: width 0.1s;
   z-index: -1;
   --highlight-color: aqua;
+}
+
+.timer {
+  border: 1px solid rgb(136, 0, 133);
+  background-color: rgb(136, 0, 133);
+  color: white;
+  border-radius: 25px;
+  font-size: x-large;
+  font-weight: bold;
+  padding: 0.5rem;
+  margin: 1rem 0;
 }

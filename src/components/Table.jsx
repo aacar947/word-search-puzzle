@@ -11,7 +11,6 @@ export default function Table({ size, table, tableRef, isMouseDown, selection, s
       setHighlighter(null);
       return;
     }
-    console.log(selection);
     const start = selection[0].node;
     const end = selection[selection.length - 1].node;
 
@@ -55,9 +54,7 @@ export default function Table({ size, table, tableRef, isMouseDown, selection, s
         const _x = x0 + i * xFactor;
         const _y = y0 + i * yFactor;
         const cell = tableRef.current[_x + ',' + _y];
-        console.log(cell);
         _selection.push(cell);
-        console.log(_x, _y);
       }
       setSelection(_selection);
     },
@@ -88,7 +85,7 @@ export default function Table({ size, table, tableRef, isMouseDown, selection, s
 
     const value = cell.querySelector('p').innerText;
     const vectorArr = vector.split(',');
-    //console.log(cell, value, vectorArr[0], vectorArr[1]);
+
     handleSelection(cell, value, Number(vectorArr[0]), Number(vectorArr[1]));
   };
 
