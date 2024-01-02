@@ -2,6 +2,7 @@
 *::after,
 *::before {
   box-sizing: border-box;
+  margin: 0;
 }
 
 #gameboard {
@@ -12,6 +13,10 @@
   min-width: min-content;
   justify-content: center;
   align-items: center;
+  touch-action: none;
+  -ms-touch-action: none;
+  -webkit-touch-callout: none;
+  font-size: larger;
 
   --cell-width: 3rem;
   --cell-height: 3rem;
@@ -84,7 +89,6 @@
 .wordlist > p {
   margin-right: 1rem;
   margin-top: 5px;
-  font-size: large;
   text-transform: uppercase;
   font-weight: bold;
 }

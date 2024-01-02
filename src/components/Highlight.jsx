@@ -1,13 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import useEventListener from '../hooks/useEventListener';
+import React, { useEffect, useRef } from 'react';
 
-export default function Highlight({ start, end, className }) {
+export default function Highlight({ start, end, className, windowSize }) {
   const mainRef = useRef(null);
-  const [windowSize, setWindowSize] = useState();
-
-  useEventListener('resize', (e) => {
-    setWindowSize([e.target.innerHeight, e.target.innerWidth]);
-  });
 
   useEffect(() => {
     if (!start || !end) return;

@@ -3,15 +3,22 @@ import Table from './Table';
 import createPuzzle from '../utils/createPuzzle';
 import WordList from './WordList';
 import Highlight from './Highlight';
+import useEventListener from '../hooks/useEventListener';
 
 export default function Gameboard({ size = [13, 15] }) {
   const [debugMode] = useState(false);
   const [table, setTable] = useState([]);
   const [selection, setSelection] = useState([]);
   const [wordlist, setWordlist] = useState([]);
-  const [isMouseDown, setMouseDown] = useState(false);
+  const isMouseDown = useRef(false);
   const tableRef = useRef({});
   const highlighterRef = useRef([]);
+
+  const [windowSize, setWindowSize] = useState();
+
+  useEventListener('resize', (e) => {
+    setWindowSize([e.target.innerHeight, e.target.innerWidth]);
+  });
 
   useLayoutEffect(() => {
     const [_table, _wordlist] = createPuzzle(size[0], size[1], 40);
@@ -42,29 +49,37 @@ export default function Gameboard({ size = [13, 15] }) {
       match.found = true;
       setWordlist([...wordlist]);
     }
-    setSelection([]);
+    if (!isMouseDown.current) setSelection([]);
   };
 
   const onMouseLeave = (e) => {
-    if (isMouseDown) setMouseDown(false);
-    onSelectionEnd();
+    if (isMouseDown.current) {
+      onSelectionEnd();
+      isMouseDown.current = false;
+    }
   };
   const onMouseDown = (e) => {
-    setMouseDown(true);
+    isMouseDown.current = true;
   };
   const onMouseUp = (e) => {
-    setMouseDown(false);
+    isMouseDown.current = false;
+    onSelectionEnd();
+  };
+
+  const onTouchEnd = () => {
     onSelectionEnd();
   };
 
   const highlightedWords = wordlist.map((w, i) => {
     if (!(debugMode || w.found)) return null;
     const mark = highlighterRef.current[i];
-    return mark ? <Highlight key={'hg' + i} start={mark.start} end={mark.end}></Highlight> : null;
+    return mark ? (
+      <Highlight key={'hg' + i} start={mark.start} end={mark.end} windowSize={windowSize}></Highlight>
+    ) : null;
   });
 
   return (
-    <div id='gameboard' style={{ position: 'relative' }} {...{ onMouseDown, onMouseUp, onMouseLeave }}>
+    <div id='gameboard' style={{ position: 'relative' }} {...{ onMouseDown, onMouseUp, onMouseLeave, onTouchEnd }}>
       <div id='gameboard-center'>
         <Table
           {...{
