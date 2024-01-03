@@ -1,21 +1,11 @@
-import React, { useLayoutEffect, useState, useCallback, useRef } from 'react';
+import React, { useLayoutEffect, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import Highlight from './Highlight';
+import useEventListener from '../hooks/useEventListener';
 
-export default function Table({ size, table, tableRef, isMouseDown, selection, setSelection, debugMode }) {
-  const [highlighter, setHighlighter] = useState(null);
+export default function Table({ size, table, tableRef, wordlist, setWordlist, debugMode }) {
+  const [selection, setSelection] = useState([]);
+  const isMouseDown = useRef(false);
   const prevTouch = useRef();
-
-  // mark selections
-  useLayoutEffect(() => {
-    if (selection.length === 0) {
-      setHighlighter(null);
-      return;
-    }
-    const start = selection[0].node;
-    const end = selection[selection.length - 1].node;
-
-    setHighlighter({ start, end });
-  }, [selection]);
 
   const handleSelection = useCallback(
     (node, value, x, y) => {
@@ -61,21 +51,37 @@ export default function Table({ size, table, tableRef, isMouseDown, selection, s
     [selection, setSelection, size, tableRef]
   );
 
-  const handleCellRef = (ref, letter, x, y) => {
-    tableRef.current[x + ',' + y] = { node: ref, value: letter, x, y };
+  const createTableRef = useCallback(
+    (ref, letter, x, y) => {
+      tableRef.current[x + ',' + y] = { node: ref, value: letter, x, y };
+    },
+    [tableRef]
+  );
+
+  const onSelectionEnd = () => {
+    let word = '';
+    selection.forEach((cell) => {
+      word += cell.value;
+    });
+    const match = wordlist.find((w) => {
+      return w.value.toLowerCase() === word.toLowerCase();
+    });
+
+    if (match) {
+      match.found = true;
+      setWordlist([...wordlist]);
+    }
+    if (selection.length > 0) setSelection([]);
   };
 
-  const onSwipe = (node, value, x, y) => {
-    if (!isMouseDown.current) return;
-    handleSelection(node, value, x, y);
-  };
+  const findAndHandleSelection = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    if (!(el.matches('.cell') || el.matches('.letter'))) return;
 
-  const onTouchMove = (e) => {
-    const x = e.touches[0].clientX;
-    const y = e.touches[0].clientY;
-    const cell = document.elementFromPoint(x, y).closest('.cell');
+    const cell = el.closest('.cell');
+    console.log(el);
 
-    if (!cell) return;
+    if (el.matches('.cell') && selection.length === 1) return;
 
     const vector = cell.dataset.vector;
     const prev = prevTouch.current;
@@ -89,45 +95,82 @@ export default function Table({ size, table, tableRef, isMouseDown, selection, s
     handleSelection(cell, value, Number(vectorArr[0]), Number(vectorArr[1]));
   };
 
+  const onTouchMove = (e) => {
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    findAndHandleSelection(x, y);
+  };
+  const onMouseMove = (e) => {
+    if (!isMouseDown.current) return;
+    const x = e.clientX;
+    const y = e.clientY;
+    findAndHandleSelection(x, y);
+  };
+
+  const onMouseDown = (e) => {
+    isMouseDown.current = true;
+    onMouseMove(e);
+  };
+
+  useEventListener('mouseleave', (e) => {
+    if (!isMouseDown.current) return;
+    onSelectionEnd();
+    prevTouch.current = null;
+    isMouseDown.current = false;
+  });
+  useEventListener('mousedown', (e) => {
+    isMouseDown.current = true;
+  });
+  useEventListener('mouseup', (e) => {
+    onSelectionEnd();
+    prevTouch.current = null;
+    isMouseDown.current = false;
+  });
+  useEventListener('touchend', (e) => {
+    prevTouch.current = null;
+    onSelectionEnd();
+  });
+
+  const wordSearchTable = useMemo(() => {
+    return table.map((row, i) => {
+      return (
+        <tr key={'tr' + i}>
+          {row.map((letter, j) => {
+            return (
+              <td
+                data-vector={`${i},${j}`}
+                className='cell'
+                key={'td' + j}
+                ref={(ref) => createTableRef(ref, letter, i, j)}
+              >
+                <p className={debugMode ? 'red-border letter' : 'letter'}>{letter}</p>
+                {debugMode ? <div className='debug'>{i + ',' + j}</div> : null}
+              </td>
+            );
+          })}
+        </tr>
+      );
+    });
+  }, [createTableRef, debugMode, table]);
+
+  const selectionHighlight = useMemo(() => {
+    return selection.length > 0 ? (
+      <Highlight className='selection' start={selection[0].node} end={selection[selection.length - 1].node} />
+    ) : null;
+  }, [selection]);
+
   return (
-    <>
-      <div id='table-wrapper' onTouchMove={onTouchMove}>
-        <table className='table'>
-          <tbody>
-            {table.map((row, i) => {
-              return (
-                <tr key={'tr' + i}>
-                  {row.map((letter, j) => {
-                    return (
-                      <td
-                        data-vector={`${i},${j}`}
-                        className='cell'
-                        onMouseEnter={(e) => selection.length > 1 && onSwipe(e.currentTarget, letter, i, j)}
-                        onMouseDown={(e) => handleSelection(e.currentTarget, letter, i, j)}
-                        onTouchStart={(e) => handleSelection(e.currentTarget, letter, i, j)}
-                        key={'td' + j}
-                        ref={(ref) => handleCellRef(ref, letter, i, j)}
-                      >
-                        <p
-                          className={debugMode ? 'red-border' : null}
-                          onMouseDown={(e) => handleSelection(e.currentTarget.offsetParent, letter, i, j)}
-                          onMouseEnter={(e) =>
-                            selection.length <= 1 && onSwipe(e.currentTarget.offsetParent, letter, i, j)
-                          }
-                        >
-                          {letter}
-                        </p>
-                        {debugMode ? <div className='debug'>{i + ',' + j}</div> : null}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {highlighter ? <Highlight className='selection' start={highlighter.start} end={highlighter.end} /> : null}
-      </div>
-    </>
+    <div
+      id='table-wrapper'
+      onTouchMove={onTouchMove}
+      onMouseMove={onMouseMove}
+      onTouchStart={onTouchMove}
+      onMouseDown={onMouseDown}
+    >
+      <table className='table'>
+        <tbody>{wordSearchTable}</tbody>
+      </table>
+      {selectionHighlight}
+    </div>
   );
 }

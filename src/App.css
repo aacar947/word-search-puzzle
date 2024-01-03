@@ -81,12 +81,14 @@
 }
 
 .wordlist {
-  display: flex;
+  max-width: 100%;
   flex-wrap: wrap;
   margin-top: 1rem;
+  text-align: justify;
 }
 
 .wordlist > p {
+  display: inline-block;
   margin-right: 1rem;
   margin-top: 5px;
   text-transform: uppercase;
@@ -142,7 +144,7 @@
   background-color: rgb(136, 0, 133);
   color: white;
   border-radius: 25px;
-  font-size: x-large;
+  font-size: 20px;
   font-weight: bold;
   padding: 0.5rem;
   margin: 1rem 0;
