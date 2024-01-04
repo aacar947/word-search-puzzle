@@ -57,6 +57,7 @@ export default function Gameboard({ size = [13, 15] }) {
             size,
             wordlist,
             setWordlist,
+            windowSize,
           }}
         />
         <WordList wordlist={wordlist}></WordList>

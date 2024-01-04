@@ -1,11 +1,22 @@
-import React, { useLayoutEffect, useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import Highlight from './Highlight';
 import useEventListener from '../hooks/useEventListener';
 
-export default function Table({ size, table, tableRef, wordlist, setWordlist, debugMode }) {
+export default function Table({ size, table, tableRef, wordlist, setWordlist, debugMode, windowSize }) {
   const [selection, setSelection] = useState([]);
   const isMouseDown = useRef(false);
-  const prevTouch = useRef();
+  const prevInteraction = useRef();
+  const mainRef = useRef();
+  const boundary = useRef();
+
+  useEffect(() => {
+    const main = mainRef.current;
+    const top = main.offsetTop;
+    const left = main.offsetLeft;
+    const bottom = top + main.offsetHeight;
+    const right = left + main.offsetWidth;
+    boundary.current = [top, left, bottom, right];
+  }, [mainRef, windowSize]);
 
   const handleSelection = useCallback(
     (node, value, x, y) => {
@@ -79,15 +90,14 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     if (!(el.matches('.cell') || el.matches('.letter'))) return;
 
     const cell = el.closest('.cell');
-    console.log(el);
 
     if (el.matches('.cell') && selection.length === 1) return;
 
     const vector = cell.dataset.vector;
-    const prev = prevTouch.current;
+    const prev = prevInteraction.current;
 
     if (vector === prev) return;
-    prevTouch.current = vector;
+    prevInteraction.current = vector;
 
     const value = cell.querySelector('p').innerText;
     const vectorArr = vector.split(',');
@@ -95,15 +105,29 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     handleSelection(cell, value, Number(vectorArr[0]), Number(vectorArr[1]));
   };
 
+  const clampBetweenBoundary = (x, y) => {
+    const margin = 10;
+    x = Math.max(Math.min(x, boundary.current[3] - margin), boundary.current[1] + margin);
+    y = Math.max(Math.min(y, boundary.current[2] - margin), boundary.current[0] + margin);
+    return [x, y];
+  };
+
   const onTouchMove = (e) => {
-    const x = e.touches[0].clientX;
-    const y = e.touches[0].clientY;
+    let x = e.touches[0].clientX;
+    let y = e.touches[0].clientY;
+    [x, y] = clampBetweenBoundary(x, y);
     findAndHandleSelection(x, y);
   };
+
+  const onTouchStart = (e) => {
+    onTouchMove(e);
+  };
+
   const onMouseMove = (e) => {
     if (!isMouseDown.current) return;
-    const x = e.clientX;
-    const y = e.clientY;
+    let x = e.clientX;
+    let y = e.clientY;
+    [x, y] = clampBetweenBoundary(x, y);
     findAndHandleSelection(x, y);
   };
 
@@ -111,25 +135,26 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     isMouseDown.current = true;
     onMouseMove(e);
   };
-
-  useEventListener('mouseleave', (e) => {
+  // Global events>
+  useEventListener('mouseleave', () => {
     if (!isMouseDown.current) return;
     onSelectionEnd();
-    prevTouch.current = null;
+    prevInteraction.current = null;
     isMouseDown.current = false;
   });
-  useEventListener('mousedown', (e) => {
+  useEventListener('mousedown', () => {
     isMouseDown.current = true;
   });
-  useEventListener('mouseup', (e) => {
+  useEventListener('mouseup', () => {
     onSelectionEnd();
-    prevTouch.current = null;
+    prevInteraction.current = null;
     isMouseDown.current = false;
   });
-  useEventListener('touchend', (e) => {
-    prevTouch.current = null;
+  useEventListener('touchend', () => {
+    prevInteraction.current = null;
     onSelectionEnd();
   });
+  useEventListener('mousemove', onMouseMove);
 
   const wordSearchTable = useMemo(() => {
     return table.map((row, i) => {
@@ -160,14 +185,8 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
   }, [selection]);
 
   return (
-    <div
-      id='table-wrapper'
-      onTouchMove={onTouchMove}
-      onMouseMove={onMouseMove}
-      onTouchStart={onTouchMove}
-      onMouseDown={onMouseDown}
-    >
-      <table className='table'>
+    <div id='table-wrapper' {...{ onTouchMove, onTouchStart, onMouseDown }}>
+      <table className='table' ref={mainRef}>
         <tbody>{wordSearchTable}</tbody>
       </table>
       {selectionHighlight}
