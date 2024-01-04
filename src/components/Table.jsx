@@ -16,7 +16,7 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     const bottom = top + main.offsetHeight;
     const right = left + main.offsetWidth;
     boundary.current = [top, left, bottom, right];
-  }, [mainRef, windowSize]);
+  }, [table, mainRef, windowSize]);
 
   const handleSelection = useCallback(
     (node, value, x, y) => {
