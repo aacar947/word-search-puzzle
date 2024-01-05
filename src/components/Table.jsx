@@ -1,21 +1,19 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import Highlight from './Highlight';
 import useEventListener from '../hooks/useEventListener';
 
-export default function Table({ size, table, tableRef, wordlist, setWordlist, debugMode, windowSize }) {
+export default function Table({ size, table, wordlist, setWordlist, debugMode, windowSize, gameOver }) {
   const [selection, setSelection] = useState([]);
+  const tableRef = useRef({});
+  const WordHighlighterRef = useRef([]);
   const isMouseDown = useRef(false);
   const prevInteraction = useRef();
   const mainRef = useRef();
   const boundary = useRef();
 
   useEffect(() => {
-    const main = mainRef.current;
-    const top = main.offsetTop;
-    const left = main.offsetLeft;
-    const bottom = top + main.offsetHeight;
-    const right = left + main.offsetWidth;
-    boundary.current = [top, left, bottom, right];
+    const rect = mainRef.current.getBoundingClientRect();
+    boundary.current = [rect.top, rect.left, rect.bottom, rect.right];
   }, [table, mainRef, windowSize]);
 
   const handleSelection = useCallback(
@@ -70,6 +68,7 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
   );
 
   const onSelectionEnd = () => {
+    if (selection.length === 0) return;
     let word = '';
     selection.forEach((cell) => {
       word += cell.value;
@@ -78,14 +77,26 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
       return w.value.toLowerCase() === word.toLowerCase();
     });
 
-    if (match) {
+    if (match && !match.found) {
       match.found = true;
+      match.foundAt = Date.now();
       setWordlist([...wordlist]);
     }
-    if (selection.length > 0) setSelection([]);
+    setSelection([]);
   };
 
-  const findAndHandleSelection = (x, y) => {
+  const clampBetweenBoundary = (x, y) => {
+    const margin = 5;
+    x = Math.max(Math.min(x, boundary.current[3] - margin), boundary.current[1] + margin);
+    y = Math.max(Math.min(y, boundary.current[2] - margin), boundary.current[0] + margin);
+    return [x, y];
+  };
+
+  const findAndHandleSelection = (input) => {
+    if (gameOver.current) return;
+    let x = input.clientX;
+    let y = input.clientY;
+    [x, y] = clampBetweenBoundary(x, y);
     const el = document.elementFromPoint(x, y);
     if (!(el.matches('.cell') || el.matches('.letter'))) return;
 
@@ -105,18 +116,8 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     handleSelection(cell, value, Number(vectorArr[0]), Number(vectorArr[1]));
   };
 
-  const clampBetweenBoundary = (x, y) => {
-    const margin = 10;
-    x = Math.max(Math.min(x, boundary.current[3] - margin), boundary.current[1] + margin);
-    y = Math.max(Math.min(y, boundary.current[2] - margin), boundary.current[0] + margin);
-    return [x, y];
-  };
-
   const onTouchMove = (e) => {
-    let x = e.touches[0].clientX;
-    let y = e.touches[0].clientY;
-    [x, y] = clampBetweenBoundary(x, y);
-    findAndHandleSelection(x, y);
+    findAndHandleSelection(e.touches[0]);
   };
 
   const onTouchStart = (e) => {
@@ -125,15 +126,12 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
 
   const onMouseMove = (e) => {
     if (!isMouseDown.current) return;
-    let x = e.clientX;
-    let y = e.clientY;
-    [x, y] = clampBetweenBoundary(x, y);
-    findAndHandleSelection(x, y);
+    findAndHandleSelection(e);
   };
 
   const onMouseDown = (e) => {
     isMouseDown.current = true;
-    onMouseMove(e);
+    findAndHandleSelection(e);
   };
   // Global events>
   useEventListener('mouseleave', () => {
@@ -184,12 +182,32 @@ export default function Table({ size, table, tableRef, wordlist, setWordlist, de
     ) : null;
   }, [selection]);
 
+  // mark found word(s)
+  useLayoutEffect(() => {
+    WordHighlighterRef.current = wordlist.map((w) => {
+      const startCell = tableRef.current[w.start[0] + ',' + w.start[1]].node;
+      const endCell = tableRef.current[w.end[0] + ',' + w.end[1]].node;
+      return { start: startCell, end: endCell };
+    });
+  }, [wordlist]);
+
+  const highlightedWords = useMemo(() => {
+    return wordlist.map((w, i) => {
+      if (!(debugMode || w.found)) return null;
+      const mark = WordHighlighterRef.current[i];
+      return mark ? (
+        <Highlight key={'hg' + i} start={mark.start} end={mark.end} windowSize={windowSize}></Highlight>
+      ) : null;
+    });
+  }, [debugMode, windowSize, wordlist]);
+
   return (
     <div id='table-wrapper' {...{ onTouchMove, onTouchStart, onMouseDown }}>
       <table className='table' ref={mainRef}>
         <tbody>{wordSearchTable}</tbody>
       </table>
       {selectionHighlight}
+      {highlightedWords}
     </div>
   );
 }

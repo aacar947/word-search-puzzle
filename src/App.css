@@ -5,6 +5,45 @@
   margin: 0;
 }
 
+:root {
+  --prime-color: rgb(0, 93, 222);
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+button {
+  border: none;
+  box-shadow: 5px 5px 3px gray;
+}
+
+button:active {
+  box-shadow: none;
+}
+
+#header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+}
+#scoreboard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  font-weight: bold;
+  font-size: 22px;
+  padding: 10px 0;
+}
+#scoreboard :last-child {
+  margin-left: auto;
+}
+#scoreboard > * {
+  display: flex;
+}
+
 #gameboard {
   display: flex;
   flex-direction: column;
@@ -17,6 +56,10 @@
   -ms-touch-action: none;
   -webkit-touch-callout: none;
   font-size: x-large;
+  user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
 
   --cell-width: 3rem;
   --cell-height: 3rem;
@@ -35,6 +78,7 @@
   border: 1px solid gray;
   border-radius: 25px;
   overflow: hidden;
+  position: relative;
 }
 
 .table td {
@@ -62,13 +106,6 @@
   text-transform: uppercase;
   font-weight: bold;
 }
-.debug {
-  position: absolute;
-  top: 5px;
-  height: 1rem;
-  width: fit-content;
-  font-size: x-small;
-}
 .table {
   border-collapse: collapse;
   user-select: none;
@@ -76,19 +113,28 @@
   text-wrap: nowrap;
 }
 
+.debug {
+  position: absolute;
+  top: 5px;
+  height: 1rem;
+  width: fit-content;
+  font-size: x-small;
+}
+
 .red-border {
   border: 1px solid red;
 }
 
 .wordlist {
+  display: flex;
   max-width: 100%;
   flex-wrap: wrap;
   margin-top: 1rem;
-  text-align: justify;
+  justify-content: center;
+  align-items: center;
 }
 
 .wordlist > p {
-  display: inline-block;
   margin-right: 1rem;
   margin-top: 5px;
   text-transform: uppercase;
@@ -147,5 +193,82 @@
   font-size: 20px;
   font-weight: bold;
   padding: 0.5rem;
-  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+}
+
+.popup {
+  --lifetime: 1s;
+  opacity: 0;
+  animation: fade-in-out var(--lifetime) ease-in-out;
+  animation-iteration-count: 1;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  color: green;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  padding: 1rem;
+  background-color: rgb(242, 242, 242);
+  min-width: 400px;
+  min-height: 300px;
+}
+.modal > .foot {
+  margin-top: auto;
+}
+.modal > .body {
+  margin-top: 1rem;
+  font-size: large;
+}
+.modal > .header {
+  font-size: larger;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.modal button,
+.modal a {
+  background-color: var(--prime-color);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: large;
+}
+
+.overlay .modal {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: forwards 0.4s fade-in ease-in-out;
+}
+
+@keyframes fade-in-out {
+  20%,
+  80% {
+    opacity: 1;
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(-25px);
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

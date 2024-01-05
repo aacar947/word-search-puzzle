@@ -1,58 +1,52 @@
-import React, { useState, useLayoutEffect, useRef, useMemo } from 'react';
+import React, { useState, useLayoutEffect, useRef } from 'react';
 import Table from './Table';
 import createPuzzle from '../utils/createPuzzle';
 import WordList from './WordList';
-import Timer from './Timer';
-import Highlight from './Highlight';
+import Header from './Header';
 import useEventListener from '../hooks/useEventListener';
 
-export default function Gameboard({ size = [13, 15] }) {
-  const [debugMode] = useState(false);
+export const CREATE_GAMEOVER_MODAL_OPTIONS = (score, highScore, onPlayAgainClick) => {
+  return {
+    show: true,
+    header: 'Game Over',
+    body: `Your Score: ${score} High Score: ${highScore}`,
+    buttons: [{ props: { className: 'modal-btn', onClick: onPlayAgainClick }, innerText: 'Play Again' }],
+  };
+};
+
+export default function Gameboard({ size = [15, 17], wordCount = 12 }) {
+  const [debugMode, setDebugMode] = useState(false);
   const [table, setTable] = useState([]);
   const [wordlist, setWordlist] = useState([]);
-  const tableRef = useRef({});
-  const WordHighlighterRef = useRef([]);
+  const gameOver = useRef(false);
 
   const [windowSize, setWindowSize] = useState();
 
   useEventListener('resize', (e) => {
     setWindowSize([e.target.innerHeight, e.target.innerWidth]);
   });
+  // ctl + alt + "D" for toggling debug mode
+  // Basicly a cheat code :)
+  useEventListener('keydown', (e) => {
+    console.log(e);
+    if (e.ctrlKey && e.altKey && e.keyCode === 68) setDebugMode(!debugMode);
+  });
 
   useLayoutEffect(() => {
-    const [_table, _wordlist] = createPuzzle(size[0], size[1], 40);
+    const [_table, _wordlist] = createPuzzle(size[0], size[1], wordCount);
     setTable(_table);
     setWordlist(_wordlist);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // mark found word(s)
-  useLayoutEffect(() => {
-    WordHighlighterRef.current = wordlist.map((w) => {
-      const startCell = tableRef.current[w.start[0] + ',' + w.start[1]].node;
-      const endCell = tableRef.current[w.end[0] + ',' + w.end[1]].node;
-      return { start: startCell, end: endCell };
-    });
-  }, [wordlist]);
-
-  const highlightedWords = useMemo(() => {
-    return wordlist.map((w, i) => {
-      if (!(debugMode || w.found)) return null;
-      const mark = WordHighlighterRef.current[i];
-      return mark ? (
-        <Highlight key={'hg' + i} start={mark.start} end={mark.end} windowSize={windowSize}></Highlight>
-      ) : null;
-    });
-  }, [debugMode, windowSize, wordlist]);
-
   return (
     <div id='gameboard' style={{ position: 'relative' }}>
       <div id='gameboard-center'>
-        <Timer wordlist={wordlist} />
+        <Header {...{ wordlist, windowSize, gameOver }} />
         <Table
           {...{
             table,
-            tableRef,
+            gameOver,
             debugMode,
             size,
             wordlist,
@@ -61,7 +55,6 @@ export default function Gameboard({ size = [13, 15] }) {
           }}
         />
         <WordList wordlist={wordlist}></WordList>
-        {highlightedWords}
       </div>
     </div>
   );

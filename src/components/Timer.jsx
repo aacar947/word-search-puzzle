@@ -1,15 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { ModalContext } from '../contexts/ModalContextProvider';
+import { CREATE_GAMEOVER_MODAL_OPTIONS } from './Gameboard';
+import useLocalStorage from '../hooks/useLocalStorage';
 
-export default function Timer({ wordlist }) {
+const Timer = React.forwardRef(({ wordlist, gameOver, score }, ref) => {
   const startTime = useRef();
   const timeoutRef = useRef();
   const [time, setTime] = useState(0);
+  const [highScore, setHighScore] = useLocalStorage('highscore', 0);
+  const [, setModalOptions] = useContext(ModalContext);
 
   useEffect(() => {
     startTime.current = Date.now();
     const interval = 1000;
     let expected = Date.now() - interval;
     const count = () => {
+      if (gameOver.current) return;
+
       const elapsed = Date.now() - startTime.current;
 
       setTime(elapsed);
@@ -21,12 +28,17 @@ export default function Timer({ wordlist }) {
     };
     timeoutRef.current = setTimeout(count, interval);
     return () => clearTimeout(timeoutRef.current);
-  }, []);
+  }, [gameOver, ref]);
+
+  useImperativeHandle(ref, () => startTime.current, []);
 
   useEffect(() => {
     if (wordlist.length === 0 || !wordlist.every((w) => w.found)) return;
+    gameOver.current = true;
     clearTimeout(timeoutRef.current);
-  }, [wordlist]);
+    if (score > highScore) setHighScore(score);
+    setModalOptions(CREATE_GAMEOVER_MODAL_OPTIONS(score, highScore, () => window.location.reload()));
+  }, [gameOver, highScore, score, setHighScore, setModalOptions, wordlist]);
 
   const formatTime = (time) => {
     const sec = Math.floor(time / 1000);
@@ -36,4 +48,6 @@ export default function Timer({ wordlist }) {
   };
 
   return <div className='timer'>{formatTime(time)}</div>;
-}
+});
+
+export default Timer;
