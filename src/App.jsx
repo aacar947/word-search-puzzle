@@ -1,15 +1,16 @@
 import './App.css';
-import Gameboard from './components/Gameboard';
-import ModalContextProvider from './contexts/ModalContextProvider';
-import Modal from './components/Modal';
+import { Routes, Route } from 'react-router-dom';
+import Game from './pages/Game';
+import Home from './pages/Home';
+
 function App() {
   return (
-    <div className='App'>
-      <ModalContextProvider>
-        <Gameboard />
-        <Modal />
-      </ModalContextProvider>
-    </div>
+    <Routes>
+      <Route path='/'>
+        <Route index element={<Home />} />
+        <Route path='game' element={<Game />} />
+      </Route>
+    </Routes>
   );
 }
 
