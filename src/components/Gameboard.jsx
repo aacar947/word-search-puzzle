@@ -5,16 +5,16 @@ import WordList from './WordList';
 import Header from './Header';
 import useEventListener from '../hooks/useEventListener';
 
-export const CREATE_GAMEOVER_MODAL_OPTIONS = (score, highScore, onPlayAgainClick) => {
+export const CREATE_GAMEOVER_MODAL_OPTIONS = (score, highScore, size, onPlayAgainClick) => {
   return {
     show: true,
     header: 'Game Over',
-    body: `Your Score: ${score} High Score: ${highScore}`,
+    body: `Your Score: ${score} High Score: ${highScore[size.join('x')]}`,
     buttons: [{ props: { className: 'modal-btn', onClick: onPlayAgainClick }, innerText: 'Play Again' }],
   };
 };
 
-export default function Gameboard({ size = [15, 17], wordCount = 12 }) {
+export default function Gameboard({ size = [13, 15], wordCount = 12 }) {
   const [debugMode, setDebugMode] = useState(false);
   const [table, setTable] = useState([]);
   const [wordlist, setWordlist] = useState([]);
@@ -28,7 +28,6 @@ export default function Gameboard({ size = [15, 17], wordCount = 12 }) {
   // ctl + alt + "D" for toggling debug mode
   // Basicly a cheat code :)
   useEventListener('keydown', (e) => {
-    console.log(e);
     if (e.ctrlKey && e.altKey && e.keyCode === 68) setDebugMode(!debugMode);
   });
 
@@ -42,7 +41,7 @@ export default function Gameboard({ size = [15, 17], wordCount = 12 }) {
   return (
     <div id='gameboard' style={{ position: 'relative' }}>
       <div id='gameboard-center'>
-        <Header {...{ wordlist, windowSize, gameOver }} />
+        <Header {...{ wordlist, windowSize, gameOver, size }} />
         <Table
           {...{
             table,

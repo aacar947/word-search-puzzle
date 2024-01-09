@@ -3,9 +3,9 @@ import Timer from './Timer';
 import Popup from './Popup';
 import useLocalStorage from '../hooks/useLocalStorage';
 
-export default function Header({ wordlist, gameOver }) {
+export default function Header({ wordlist, gameOver, size }) {
   const [score, setScore] = useState(0);
-  const [highScore] = useLocalStorage('highscore', 0);
+  const [highScore] = useLocalStorage('highscore', { [size.join('x')]: 0 });
   const [earned, setEarned] = useState(0);
   const startTime = useRef();
 
@@ -14,7 +14,7 @@ export default function Header({ wordlist, gameOver }) {
       if (!word.found) return score;
       const relativeTime = Math.max(Math.floor((word.foundAt - startTime.current) / 1000), 1);
       const calc = Math.floor((word.value.length * 250) / Math.log10(relativeTime * 10));
-      console.log(relativeTime, word.value.length, calc);
+
       return score + calc;
     }, 0);
     if (!totalScore) return;
@@ -26,15 +26,14 @@ export default function Header({ wordlist, gameOver }) {
 
   return (
     <div id='header'>
-      <Timer ref={startTime} {...{ gameOver, wordlist, score }} />
+      <Timer ref={startTime} {...{ gameOver, wordlist, score, size }} />
       <div id='scoreboard'>
         <div style={{ color: 'gray', position: 'relative' }}>
           Score: <p style={{ color: 'black', margin: '0 5px' }}>{score}</p>
           <Popup lifetime='2s' message={earned ? { text: '+' + earned } : ''} />
         </div>
         <div style={{ color: 'gray' }}>
-          {' '}
-          High Score:<p style={{ color: 'black', margin: '0 5px' }}>{highScore}</p>{' '}
+          High Score:<p style={{ color: 'black', margin: '0 5px' }}>{highScore[size.join('x')] || 0}</p>{' '}
         </div>
       </div>
     </div>

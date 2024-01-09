@@ -1,14 +1,23 @@
 import './App.css';
 import { Routes, Route } from 'react-router-dom';
-import Game from './pages/Game';
 import Home from './pages/Home';
+import { lazy, Suspense } from 'react';
+
+const Game = lazy(() => import('./pages/Game'));
 
 function App() {
   return (
     <Routes>
       <Route path='/'>
         <Route index element={<Home />} />
-        <Route path='game' element={<Game />} />
+        <Route
+          path='game'
+          element={
+            <Suspense>
+              <Game />
+            </Suspense>
+          }
+        />
       </Route>
     </Routes>
   );

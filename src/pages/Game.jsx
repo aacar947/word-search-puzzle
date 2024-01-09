@@ -1,24 +1,30 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ModalContextProvider from '../contexts/ModalContextProvider';
 import Gameboard from '../components/Gameboard';
 import Modal from '../components/Modal';
 import { useSearchParams } from 'react-router-dom';
 
-const SIZE_VALIDATION_REGEX = /^[1-9]?[0-9]\*[1-9]?[0-9]$/s;
+const SIZE_VALIDATION_REGEX = /^[1-2]?[0-9]\*[1-2]?[0-9]$/s;
 const DEFAULT_SIZE = [13, 15];
-const MAX_SIZE = 20;
 
 export default function Game() {
-  const [params] = useSearchParams({ size: '13*15' });
-  const getValidSize = () => {
-    const _size = params.get('size').trim();
-    if (!SIZE_VALIDATION_REGEX.test(_size)) return DEFAULT_SIZE;
-    return _size.split('*').map((n) => {
-      return Math.min(Number(n), MAX_SIZE);
-    });
-  };
-  const size = getValidSize();
-  console.log(size);
+  const [query, setQuery] = useSearchParams({ size: '13*15' });
+
+  const getValidSize = useCallback(() => {
+    const _size = query.get('size')?.trim();
+    return !_size || !SIZE_VALIDATION_REGEX.test(_size) ? DEFAULT_SIZE.join('*') : _size;
+  }, [query]);
+
+  useEffect(() => {
+    setQuery(
+      (prev) => {
+        return { ...prev, size: getValidSize() };
+      },
+      { replace: true }
+    );
+  }, [getValidSize, setQuery]);
+
+  const size = getValidSize().split('*');
   return (
     <div className='App'>
       <ModalContextProvider>

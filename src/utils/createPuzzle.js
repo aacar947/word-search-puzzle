@@ -1,9 +1,13 @@
 import Wordlist from './wordlist';
-const MAX_SIZE = 40
-export default function createPuzzle(height = 11, width = 11, wordCount = Infinity) {
-  height = Math.min(MAX_SIZE, height);
-  width = Math.min(MAX_SIZE, width)
-  const charLimit = Math.min(height, width) - 3
+import { randomInt, clamp } from './helperFunctions';
+
+const MAX_SIZE = 20;
+const MIN_SIZE = 5;
+
+export default function createPuzzle(width = 11, height = 11, wordCount = Infinity) {
+  height = clamp(height, MIN_SIZE, MAX_SIZE)
+  width = clamp(width, MIN_SIZE, MAX_SIZE)
+  const charLimit = clamp(Math.min(height, width) - 2, 4, MAX_SIZE - 2)
   const listSize = Math.min(height, width, wordCount)
   // create word list
   let wordlist = createAWordList(listSize, charLimit)
@@ -19,20 +23,16 @@ export default function createPuzzle(height = 11, width = 11, wordCount = Infini
 function createAWordList(size, charLimit) {
   let wordlist = [];
   const _wordlist = Wordlist.filter(w => w.length <= charLimit);
-  const length = _wordlist.length;
-  const pickedIndexes = [];
-  for (let i = 0; i < size; i++) {
-    // pick random words
-    let index;
-    let picked = false
-    // avoid duplication
-    do {
-      index = randomInt(length)
-      picked = pickedIndexes.includes(index);
-    } while (picked)
-    wordlist.push(_wordlist[index])
-    pickedIndexes.push(index)
 
+  size = Math.min(_wordlist.length, Math.abs(size))
+  for (let i = 0; i < size; i++) {
+    const length = _wordlist.length;
+    if (length === 0) break;
+    // pick random words
+    const index = randomInt(length)
+    wordlist.push(_wordlist[index])
+    // avoid duplication
+    _wordlist.splice(index, 1)
   }
   return wordlist.map((word, i) => { return { value: word, found: false, index: i } });
 }
@@ -145,14 +145,5 @@ function fillEmptyCells(table) {
       if (!cell) table[x][y] = String.fromCharCode(randomInt(65, 91))
     })
   })
-}
-
-function randomInt(number) {
-  let min = 0, max = number;
-  if (arguments.length >= 2) {
-    min = arguments[0];
-    max = arguments[1];
-  }
-  return Math.floor(Math.random() * (max - min) + min);
 }
 
