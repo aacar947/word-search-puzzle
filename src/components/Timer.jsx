@@ -3,7 +3,7 @@ import { ModalContext } from '../contexts/ModalContextProvider';
 import { CREATE_GAMEOVER_MODAL_OPTIONS } from './Gameboard';
 import useLocalStorage from '../hooks/useLocalStorage';
 
-const Timer = React.forwardRef(({ wordlist, gameOver, score, size }, ref) => {
+const Timer = React.forwardRef(({ wordlist, gameOver, score, size, children }, ref) => {
   const startTime = useRef();
   const timeoutRef = useRef();
   const [time, setTime] = useState(0);
@@ -51,10 +51,16 @@ const Timer = React.forwardRef(({ wordlist, gameOver, score, size }, ref) => {
     const sec = Math.floor(time / 1000);
     const min = Math.floor(sec / 60);
     const hr = Math.floor(min / 60);
-    return [hr % 60, min % 60, sec % 60].map((v) => (('' + v).length === 1 ? '0' + v : '' + v)).join(':');
+    const formatedTimeArr = hr === 0 ? [min % 60, sec % 60] : [hr % 60, min % 60, sec % 60];
+    return formatedTimeArr.map((v) => (('' + v).length === 1 ? '0' + v : '' + v)).join(':');
   };
 
-  return <div className='timer'>{formatTime(time)}</div>;
+  return (
+    <div className='flex flex-center timer box-shadow round-corner'>
+      {children}
+      <p>{formatTime(time)}</p>
+    </div>
+  );
 });
 
 export default Timer;

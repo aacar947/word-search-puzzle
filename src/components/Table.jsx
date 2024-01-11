@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import Highlight from './Highlight';
 import useEventListener from '../hooks/useEventListener';
+import { clamp } from '../utils/helperFunctions';
 
 export default function Table({ size, table, wordlist, setWordlist, debugMode, windowSize, gameOver }) {
   const [selection, setSelection] = useState([]);
@@ -39,8 +40,8 @@ export default function Table({ size, table, wordlist, setWordlist, debugMode, w
           const delta = Math.max(Math.abs(x0 - x), Math.abs(y0 - y));
           const xFactor = x1 - x0;
           const yFactor = y1 - y0;
-          x = Math.max(Math.min(x0 + delta * xFactor, size[0] - 1), 0);
-          y = Math.max(Math.min(y0 + delta * yFactor, size[1] - 1), 0);
+          x = clamp(x0 + delta * xFactor, 0, size[1] - 1);
+          y = clamp(y0 + delta * yFactor, 0, size[0] - 1);
         }
       }
 
@@ -202,8 +203,8 @@ export default function Table({ size, table, wordlist, setWordlist, debugMode, w
   }, [debugMode, windowSize, wordlist]);
 
   return (
-    <div id='table-wrapper' {...{ onTouchMove, onTouchStart, onMouseDown }}>
-      <table className='table' ref={mainRef}>
+    <div id='table-wrapper' className='round-corner box-shadow' {...{ onTouchMove, onTouchStart, onMouseDown }}>
+      <table className='table touch-action-none' ref={mainRef}>
         <tbody>{wordSearchTable}</tbody>
       </table>
       {selectionHighlight}

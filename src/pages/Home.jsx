@@ -1,9 +1,10 @@
 import React, { useReducer, useRef, useState, forwardRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import Btn from '../components/Btn';
 import Icon from '../components/Icon';
 import { clamp } from '../utils/helperFunctions';
 import useLocalStorage from '../hooks/useLocalStorage';
+import Logo from '../components/Logo';
+import { useNavigate } from 'react-router-dom';
 
 const SIZE_NUMBER_ACTIONS = {
     increase: 'increase',
@@ -16,19 +17,26 @@ const SIZE_NUMBER_ACTIONS = {
 export default function Home() {
   const [highScore] = useLocalStorage('highscore', {});
   const [size, setSize] = useState([0, 0]);
+  const navigate = useNavigate();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/game?size=${size.join('*')}`);
+  };
   return (
-    <main id='main-menu' className='flex-col flex-center absolute-center user-select-none'>
-      <SizeSelector setSize={setSize} />
-      <div className='bold font-larger'>High Score: {highScore[size.join('x')] || 0}</div>
-      <PlayBtn params={`size=${size.join('*')}`} />
-    </main>
+    <div id='main-menu' className='user-select-none flex flex-center'>
+      <form onSubmit={handleSubmit} className='flex-col flex-center'>
+        <h1 className='bold font-larger'>High Score: {highScore[size.join('x')] || 0}</h1>
+        <SizeSelector setSize={setSize} />
+        <PlayBtn type='submit' params={`size=${size.join('*')}`} />
+      </form>
+    </div>
   );
 }
 
-function PlayBtn({ params = 'size=13*15' }) {
+function PlayBtn(props) {
   return (
-    <Link to={`/game?${params}`} style={{ maxWidth: 'fit-content', margin: '10px' }}>
-      <Btn className='play-btn flex flex-center'>
+    <div style={{ maxWidth: 'fit-content', margin: '10px' }}>
+      <Btn {...props} className='play-btn flex flex-center'>
         <p>Play</p>
         <div className='arrows'>
           <Icon
@@ -60,7 +68,7 @@ function PlayBtn({ params = 'size=13*15' }) {
           />
         </div>
       </Btn>
-    </Link>
+    </div>
   );
 }
 
@@ -82,12 +90,12 @@ function SizeSelector({ setSize }) {
   );
 
   return (
-    <div>
-      <div className='flex-col flex-center'>
-        <h3>Select Size:</h3>
-        <div className='flex flex-center'>
+    <div className='flex-col flex-center' style={{ width: '100%' }}>
+      <p>Select table size:</p>
+      <div className='size-selector round-corner box-shadow'>
+        <div className='flex'>
           <InputNumber ref={widthInputRef} onChange={handleWidthChange} min={MIN_SIZE} max={MAX_SIZE} />
-          <p style={{ fontSize: 'larger', margin: '0.5rem' }}> by </p>
+          <p style={{ marginTop: '0.5rem', fontWeight: 'light' }}> by </p>
           <InputNumber ref={heightInputRef} onChange={handleHeightChange} min={MIN_SIZE} max={MAX_SIZE} />
         </div>
       </div>
@@ -145,8 +153,9 @@ const InputNumber = forwardRef(function ({ min, max, longPressInterval = 500, on
     });
   };
   return (
-    <div className='size-selector flex flex-center' onMouseLeave={handleFocusOut}>
+    <div className='size-input flex flex-center' onMouseLeave={handleFocusOut}>
       <button
+        type='button'
         onClick={() => addNumber(SIZE_NUMBER_ACTIONS.decrease)}
         onMouseDown={() => handleLongPress(SIZE_NUMBER_ACTIONS.decrease)}
         onMouseUp={handleCancelLongPress}
@@ -161,6 +170,7 @@ const InputNumber = forwardRef(function ({ min, max, longPressInterval = 500, on
       </button>
       <input ref={ref} {...rest} readOnly type='number' id='' value={number} />
       <button
+        type='button'
         onClick={() => addNumber(SIZE_NUMBER_ACTIONS.increase)}
         onMouseDown={() => handleLongPress(SIZE_NUMBER_ACTIONS.increase)}
         onMouseUp={handleCancelLongPress}
