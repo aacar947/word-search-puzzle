@@ -99,7 +99,8 @@ export default function Table({ size, table, wordlist, setWordlist, debugMode, w
     let y = input.clientY;
     [x, y] = clampBetweenBoundary(x, y);
     const el = document.elementFromPoint(x, y);
-    if (!(el.matches('.cell') || el.matches('.letter'))) return;
+
+    if (!el || !(el.matches('.cell') || el.matches('.letter'))) return;
 
     const cell = el.closest('.cell');
 

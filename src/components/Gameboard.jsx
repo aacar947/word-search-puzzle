@@ -39,8 +39,7 @@ export default function Gameboard({ size = [13, 15], wordCount = 12 }) {
     setWindowSize([window.innerWidth, window.innerHeight]);
   }, []);
 
-  useEffect(() => {
-    console.log(windowSize);
+  useLayoutEffect(() => {
     if (windowSize.length === 0) return;
     const gameboard = gameboardRef.current;
     const parent = gameboard.closest('main');
@@ -53,7 +52,6 @@ export default function Gameboard({ size = [13, 15], wordCount = 12 }) {
 
     if (screenHeight < boardHeight) ratio = Math.floor((screenHeight / boardHeight) * 100) / 100;
     if (screenWidth < boardWidth) ratio = Math.floor((screenWidth / boardWidth) * 100) / 100;
-    console.log({ ratio, screenHeight, screenWidth, boardHeight, boardWidth });
 
     gameboard.style.setProperty('--scale-ratio', ratio);
   }, [windowSize]);
