@@ -18,7 +18,7 @@ export default function Modal() {
             return (
               <button key={'btn' + i} {...btnProps}>
                 {iconProps ? <Icon {...iconProps} /> : null}
-                {btn.innerText || null}
+                <p>{btn.innerText || null}</p>
               </button>
             );
           })}

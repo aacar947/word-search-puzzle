@@ -72,7 +72,7 @@
   -webkit-mask-repeat: no-repeat;
   width: var(--icon-size);
   height: var(--icon-size);
-  background-color: rgb(226, 226, 226);
+  background-color: var(--font-color);
 }
 .justify-start {
   justify-content: flex-start;

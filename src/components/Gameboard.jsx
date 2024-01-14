@@ -120,12 +120,14 @@ function Header({ wordlist, gameOver, size }) {
         <Icon src='../icons/timer.svg' />
       </Timer>
       <div id='scoreboard'>
-        <div style={{ color: 'gray', position: 'relative' }}>
-          Score: <p style={{ color: 'black', margin: '0 5px' }}>{score}</p>
+        <div style={{ position: 'relative' }}>
+          <p style={{ color: 'var(--subtle-font-color)' }}>Score:</p>
+          <p style={{ marginLeft: '5px' }}>{score}</p>
           <Popup lifetime='2s' message={earned ? { text: '+' + earned } : ''} />
         </div>
-        <div style={{ color: 'gray' }}>
-          High Score:<p style={{ color: 'black', margin: '0 5px' }}>{highScore[size.join('x')] || 0}</p>{' '}
+        <div>
+          <p style={{ color: 'var(--subtle-font-color)' }}>High Score:</p>
+          <p style={{ marginLeft: '5px' }}>{highScore[size.join('x')] || 0}</p>{' '}
         </div>
       </div>
     </div>

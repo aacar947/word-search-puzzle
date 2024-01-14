@@ -3,7 +3,6 @@ import Btn from '../components/Btn';
 import Icon from '../components/Icon';
 import { clamp } from '../utils/helperFunctions';
 import useLocalStorage from '../hooks/useLocalStorage';
-import Logo from '../components/Logo';
 import { useNavigate } from 'react-router-dom';
 
 const SIZE_NUMBER_ACTIONS = {

@@ -7,16 +7,19 @@
   margin: 0;
 }
 
-:root {
-  --prime-color: rgb(56, 64, 84);
+body {
+  --bg-color: aliceblue;
+  --font-color: black;
+  --subtle-font-color: gray;
+  --prime-color: rgb(8, 137, 244);
   --secondary-color: rgb(140, 81, 245);
-  --prime-font-color: rgb(219, 219, 219);
   --third-color: rgb(0, 255, 225);
   --fourth-color: rgb(200, 215, 28);
+  --prime-font-color: rgb(219, 219, 219);
   --secondary-font-color: rgb(255, 255, 255);
   --btn-radius: 15px;
   --large-font: 25px;
-  --light-bg-color: white;
+  --header-bg-color: white;
 
   --cell-size: 2.2rem;
   --cell-padding: 0.3rem;
@@ -24,6 +27,28 @@
   --icon-size: 22px;
   --highlight-stroke-weight: calc(var(--table-font-size) * 1.2);
   --highlight-color: rgb(255, 217, 0);
+  --highlight-selection-color: var(--third-color);
+
+  --toggle-color: rgb(51, 51, 51);
+  --toggle-bg-color: rgb(204, 204, 204);
+  --toggle-lever-color: yellow;
+
+  background-color: var(--bg-color);
+  color: var(--font-color);
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in;
+}
+body.dark {
+  --bg-color: #333;
+  --font-color: rgb(239, 239, 239);
+  --subtle-font-color: rgb(155, 155, 155);
+  --header-bg-color: rgb(56, 64, 84);
+
+  --highlight-color: rgb(212, 180, 0);
+  --highlight-selection-color: rgb(0, 208, 208);
+
+  --toggle-color: rgb(213, 213, 213);
+  --toggle-bg-color: rgb(109, 109, 109);
+  --toggle-lever-color: var(--secondary-color);
 }
 
 html,
@@ -54,8 +79,9 @@ button:active {
 header {
   position: sticky;
   top: 0;
-  background-color: var(--light-bg-color);
+  background-color: var(--header-bg-color);
   z-index: 999;
+  flex-wrap: wrap;
 }
 main {
   max-height: 100dvh;
@@ -85,8 +111,8 @@ main {
 #header {
   position: relative;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
   width: 100%;
   font-size: 14px;
 }
@@ -178,7 +204,7 @@ main {
 .highlight.selection {
   transition: width 0.1s;
   z-index: -1;
-  --highlight-color: aqua;
+  --highlight-color: var(--highlight-selection-color);
 }
 
 /* >Modal Styles*/
@@ -196,9 +222,9 @@ main {
   flex-direction: column;
   border-radius: 20px;
   padding: 1rem;
-  background-color: rgb(242, 242, 242);
-  min-width: 400px;
-  min-height: 300px;
+  background-color: var(--bg-color);
+  width: 400px;
+  height: 300px;
 }
 .modal > .foot {
   margin-top: auto;
@@ -220,6 +246,14 @@ main {
   padding: 0.5rem;
   border-radius: 0.5rem;
   font-size: large;
+}
+.modal button > *,
+.modal a > * {
+  margin-left: 0.5rem;
+}
+.modal button :first-child,
+.modal a :first-child {
+  margin-left: 0;
 }
 
 .overlay .modal {
@@ -359,14 +393,80 @@ main {
 }
 
 .timer {
-  background-color: var(--prime-color);
-  color: var(--prime-font-color);
-  font-size: 14px;
+  background-color: var(--third-color);
   font-weight: bold;
   padding: 0.5rem;
   display: flex;
   justify-content: center;
   width: fit-content;
+  color: black;
+}
+.timer .icon {
+  background-color: black;
+}
+
+.toggle-label {
+  --toggle-padding: 0.2rem;
+  --toggle-inner-padding: 0.3rem;
+  --toggle-size: 2rem;
+  --toggle-lever-size: calc(var(--toggle-size) - var(--toggle-padding) * 2);
+  --toggle-icon-size: calc(var(--toggle-lever-size) - var(--toggle-inner-padding) * 2);
+  --toggle-animation-duration: 0.5s;
+  display: inline-block;
+  cursor: pointer;
+  padding: var(--toggle-padding);
+  margin: 1rem;
+  width: 4.5rem;
+  height: var(--toggle-size);
+  border-radius: var(--btn-radius);
+  background-color: var(--toggle-bg-color);
+}
+
+.toggle-label .icon {
+  background-color: var(--toggle-color);
+  width: var(--toggle-icon-size);
+  height: var(--toggle-icon-size);
+  z-index: 1;
+  transition: transform var(--toggle-animation-duration) ease-in-out;
+}
+
+.toggle-label-inner {
+  position: relative;
+  padding: var(--toggle-inner-padding);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-label-inner::after {
+  content: '';
+  height: 100%;
+  border-radius: var(--btn-radius);
+  background-color: var(--toggle-lever-color);
+  position: absolute;
+  left: calc(100% - var(--toggle-lever-size));
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 0;
+  animation: toggle-off var(--toggle-animation-duration) ease-in-out forwards;
+  transition: all var(--toggle-animation-duration) ease-in-out;
+}
+
+.toggle-switch {
+  display: none;
+}
+
+.toggle-switch:checked ~ .toggle-label .toggle-label-inner::after {
+  left: 0;
+  right: calc(100% - var(--toggle-lever-size));
+  animation: toggle-on var(--toggle-animation-duration) ease-in-out forwards;
+}
+
+.toggle-switch:checked ~ .toggle-label .icon {
+  transform: rotateZ(360deg);
 }
 
 .wordlist {
@@ -415,5 +515,26 @@ main {
   75%,
   100% {
     transform: translate(0);
+  }
+}
+
+@keyframes toggle-off {
+  66% {
+    left: 0;
+    right: 0;
+  }
+  100% {
+    left: 0;
+    right: calc(100% - var(--toggle-lever-size));
+  }
+}
+@keyframes toggle-on {
+  66% {
+    left: 0;
+    right: 0;
+  }
+  100% {
+    right: 0;
+    left: calc(100% - var(--toggle-lever-size));
   }
 }
