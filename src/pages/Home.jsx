@@ -1,9 +1,10 @@
-import React, { useReducer, useRef, useState, forwardRef, useEffect, useCallback } from 'react';
+import React, { useReducer, useRef, forwardRef, useEffect, useCallback } from 'react';
 import Btn from '../components/Btn';
 import Icon from '../components/Icon';
 import { clamp } from '../utils/helperFunctions';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useNavigate } from 'react-router-dom';
+import useCookieState from '../hooks/useCookieState';
 
 const SIZE_NUMBER_ACTIONS = {
     increase: 'increase',
@@ -15,7 +16,7 @@ const SIZE_NUMBER_ACTIONS = {
 
 export default function Home() {
   const [highScore] = useLocalStorage('highscore', {});
-  const [size, setSize] = useState([0, 0]);
+  const [size, setSize] = useCookieState('tableSize', [0, 0]);
   const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,15 +75,18 @@ function PlayBtn(props) {
 function SizeSelector({ setSize }) {
   const widthInputRef = useRef();
   const heightInputRef = useRef();
+  const [tableSize] = useCookieState('tableSize');
 
   const handleHeightChange = useCallback(
     (e) => {
+      console.log(e.target.value);
       setSize([widthInputRef.current.value || 0, e.target.value]);
     },
     [setSize]
   );
   const handleWidthChange = useCallback(
     (e) => {
+      console.log(e.target.value);
       setSize([e.target.value, heightInputRef.current.value || 0]);
     },
     [setSize]
@@ -93,19 +97,32 @@ function SizeSelector({ setSize }) {
       <p>Select table size:</p>
       <div className='size-selector round-corner box-shadow'>
         <div className='flex'>
-          <InputNumber ref={widthInputRef} onChange={handleWidthChange} min={MIN_SIZE} max={MAX_SIZE} />
+          <InputNumber
+            ref={widthInputRef}
+            onChange={handleWidthChange}
+            defaultValue={tableSize[0]}
+            min={MIN_SIZE}
+            max={MAX_SIZE}
+          />
           <p style={{ marginTop: '0.5rem', fontWeight: 'light' }}> by </p>
-          <InputNumber ref={heightInputRef} onChange={handleHeightChange} min={MIN_SIZE} max={MAX_SIZE} />
+          <InputNumber
+            ref={heightInputRef}
+            onChange={handleHeightChange}
+            defaultValue={tableSize[1]}
+            min={MIN_SIZE}
+            max={MAX_SIZE}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-const InputNumber = forwardRef(function ({ min, max, longPressInterval = 500, onChange, ...rest }, ref) {
+const InputNumber = forwardRef(function ({ min, max, defaultValue, longPressInterval = 500, onChange, ...rest }, ref) {
   const longPressTimer = useRef();
   const setNumberRepeatedlyInterval = useRef();
   const hasLimit = typeof min === 'number' && typeof max === 'number';
+  console.log(defaultValue);
   const [number, setNumber] = useReducer(
     (prev, action) => {
       if (action.type === SIZE_NUMBER_ACTIONS.increase) {
@@ -116,7 +133,7 @@ const InputNumber = forwardRef(function ({ min, max, longPressInterval = 500, on
         return hasLimit ? clamp(action, min, max) : action;
       } else return min ? min : 0;
     },
-    hasLimit ? min + Math.floor((max - min) / 2) : 0
+    hasLimit ? clamp(defaultValue, min, max) || min + Math.floor((max - min) / 2) : defaultValue || 0
   );
 
   useEffect(() => {
