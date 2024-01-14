@@ -26,7 +26,7 @@ export const CREATE_GAMEOVER_MODAL_OPTIONS = (score, highScore, size, onPlayAgai
   };
 };
 
-export default function Gameboard({ size = [13, 15], wordCount = 12 }) {
+export default function Gameboard({ size = [13, 15] }) {
   const [debugMode, setDebugMode] = useState(false);
   const [table, setTable] = useState([]);
   const [wordlist, setWordlist] = useState([]);
@@ -66,7 +66,7 @@ export default function Gameboard({ size = [13, 15], wordCount = 12 }) {
   });
 
   useLayoutEffect(() => {
-    const [_table, _wordlist] = createPuzzle(size[0], size[1], wordCount);
+    const [_table, _wordlist] = createPuzzle(size[0], size[1]);
     setTable(_table);
     setWordlist(_wordlist);
     // eslint-disable-next-line react-hooks/exhaustive-deps

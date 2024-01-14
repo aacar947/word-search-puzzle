@@ -83,10 +83,6 @@ header {
   z-index: 999;
   flex-wrap: wrap;
 }
-main {
-  max-height: 100dvh;
-  max-height: 100vh;
-}
 
 #gameboard {
   min-width: 100vw !important;

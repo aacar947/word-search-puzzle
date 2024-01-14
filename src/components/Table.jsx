@@ -12,10 +12,18 @@ export default function Table({ size, table, wordlist, setWordlist, debugMode, w
   const mainRef = useRef();
   const boundary = useRef();
 
-  useEffect(() => {
+  const setBoundary = useCallback(() => {
     const rect = mainRef.current.getBoundingClientRect();
     boundary.current = [rect.top, rect.left, rect.bottom, rect.right];
-  }, [table, mainRef, windowSize]);
+  }, []);
+
+  useEffect(() => {
+    setBoundary();
+  }, [table, mainRef, windowSize, setBoundary]);
+
+  useEventListener('scroll', () => {
+    setBoundary();
+  });
 
   const handleSelection = useCallback(
     (node, value, x, y) => {
@@ -114,6 +122,7 @@ export default function Table({ size, table, wordlist, setWordlist, debugMode, w
 
     const value = cell.querySelector('p').innerText;
     const vectorArr = vector.split(',');
+    console.log(x, y, cell.offsetLeft, cell.offsetTop);
 
     handleSelection(cell, value, Number(vectorArr[0]), Number(vectorArr[1]));
   };
